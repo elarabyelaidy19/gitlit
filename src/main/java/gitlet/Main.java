@@ -11,15 +11,7 @@ public class Main {
     public static void main(String[] args) {
         // TODO: what if args is empty?  
     	System.out.print("beb");
-        String firstArg = args[0];
-        switch(firstArg) {
-            case "init":
-                // TODO: handle the `init` command
-                break;
-            case "add":
-                // TODO: handle the `add [filename]` command
-                break;
-            // TODO: FILL THE REST IN
-        }
+
+        
     }
 }
