@@ -86,5 +86,21 @@ public class Commit {
         return message;
     }
 
+    public List<String> getParents() { 
+        return parents;
+    }
+    // returns the tracked files Key file paths, Value SHA-1 id
+    public Map<String, String> getTracked() { 
+        return tracked;
+    }
 
+
+    // restore tracked files 
+    public boolean restoreTracked(String filepath) { 
+        String blobId = tracked.get(filepath);
+        if(blobId == null) { 
+            return false;
+        }
+        Blob.fromFile(blobId).writContentToSource();
+    }
 }
