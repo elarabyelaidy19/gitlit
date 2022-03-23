@@ -89,7 +89,7 @@ class Utils {
     }
 
     /* READING AND WRITING FILE CONTENTS */
-
+    // reads in a file as byte array
     /** Return the entire contents of FILE as a byte array.  FILE must
      *  be a normal file.  Throws IllegalArgumentException
      *  in case of problems. */
@@ -152,7 +152,7 @@ class Utils {
         }
     }
 
-    /** Write OBJ to FILE. */
+    /** Write serialized OBJ to FILE. */
     static void writeObject(File file, Serializable obj) {
         writeContents(file, serialize(obj));
     }
@@ -193,7 +193,7 @@ class Utils {
     /** Return the concatentation of FIRST and OTHERS into a File designator,
      *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
      *  method. */
-    static File join(String first, String... others) {
+    static File join(String first, String... others) { // join together strings into path
         return Paths.get(first, others).toFile();
     }
 
