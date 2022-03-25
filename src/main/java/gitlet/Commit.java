@@ -19,7 +19,7 @@ import static gitlet.Utils.sha1;
 /** the gitlet commit object.
  *  @author Elaraby
  */
-public class Commit {
+public class Commit implements Serializable {
 
     // the commit message 
     private final String message;
