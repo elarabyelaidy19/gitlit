@@ -109,8 +109,9 @@ public class Commit implements Serializable {
     }
 
     public void restoreallTracked() {
-        for(String blobId : tracked.values())
+        for(String blobId : tracked.values()) {
             Blob.formFile(blobId).writeContentToSource();
+        }
     }
 
     public String getId() {

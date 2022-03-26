@@ -25,6 +25,7 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects") ;
+    public static final File INDEX = join(GITLET_DIR, "index");
 
     /* TODO: fill in the rest of this class. */
 }
