@@ -25,11 +25,13 @@ public class Blob implements Serializable {
 
 
     // generate sha1 id
-    public String getSHA(File sourceFile) {
+    public String getSHA() {
+
         return sha1(serialize(this), "blob");
     }
 
     public String getFileName() {
+
         return fileName;
     }
 
