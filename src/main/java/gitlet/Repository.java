@@ -77,19 +77,26 @@ public class Repository {
         File toAddFile = join(BLOBS, toAdd.getSHA());
         stage = getStage(); // get instance of satgingArea reading from file catsing it
         writeContents(toAddFile, toAdd.getContent());
-        Commit currentHead = getHead(); // most recent commit in the main branch
 
+        Commit currentHead = getHead(); // most recent commit in the main branch
+        // remove if it is found in staged to remove
         if(stage.getRemoved().contains(filename)) {
             stage.getRemoved().remove(filename);
             writeObject(STAGING, stage);
         }
+
+        // if this file does'nt changed from previous commit do not add it to the staging area
         if(currentHead.getBlobs().containsValue(toAdd.getSHA())
             && currentHead.getBlobs().get(filename).equals(toAdd.getSHA())) {
             stage = getStage();
             stage.unStage(filename);
             writeObject(STAGING, stage);
             return;
-        }
+        } 
+
+        //add file to staging and update content
+        stage.add(fileName, toAdd.getSHA); 
+        writeContents(STAGING, stage);
     }
 
     public StagingArea getStage() {
@@ -103,8 +110,41 @@ public class Repository {
         commits = readObject(COMMITS, TreeMap.class);
         Commit currHead = commits.get(headId);
         return  currHead;
+    } 
+
+    public void commit(String message, String mergeParent) { 
+        if(message.length() <= 0) { 
+            throw new GitletException("message not provided"); 
+        }
+
+        stage = getStage();
+        if(stage.getAdded().isEmpty() && stage.getRemoved().isEmpty()) { 
+            throw new GitletException("nothing to commits");
+        }
+
+        Commit newCommit = new Commit(message, getHead().getSHA, mergeParent);
+        for(String key: getHead().getBlobs().keySet()) { 
+            if(!stage.getRemoved().contains(key)) { 
+                newCommit.getBlobs().put(key, getHead().getBlobs().get(key)); 
+            }
+        }
+
+        for(String key : stage.getAdded().keySet()) { 
+            String shaId = stage.getAdded().get(key); 
+            if(!newCommit.getBlobs().contains(shaId)) { 
+                newCommit.getBlobs().put(key, shaId);
+            }
+        }
+
+        commits = getCommits(); 
+        commits.put(newCommit.getSHA(), newCommit); 
+        writeObject(COMMITS, commits); 
+        updateActiveBranch(newCommit.getSHA());
+        stage.clear(); 
+        writeObject(STAGING, stage);
     }
 
-
-    /* TODO: fill in the rest of this class. */
+    public TreeMap<String, Commit> getCommits() { 
+        readObject(COMMITS, TreeMap.class);
+    }
 }
