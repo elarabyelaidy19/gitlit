@@ -5,12 +5,7 @@ import java.util.TreeMap;
 
 import static gitlet.Utils.*;
 
-// TODO: any imports you need here
-
-/** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
- *
+/** 
  *  @author Elaraby Elaidy
  */
 public class Repository {
@@ -147,4 +142,66 @@ public class Repository {
     public TreeMap<String, Commit> getCommits() { 
         readObject(COMMITS, TreeMap.class);
     }
+
+
+    public void rm(String fileName) { 
+        stage = getStage(); 
+        boolean tracked = false;
+        boolean staged = false; 
+
+        if(stage.getAdded().containsKey(fileName)) { 
+            staged = true; 
+            stage.unStage(fileName); 
+            writeObject(STAGING, stage);
+        }
+
+        if(getHead().getBlobs().containsKey(fileName) { 
+            tracked = true;
+            stage.unStage(fileName); 
+            stage.remove(fileName); 
+            restrictedDelete(fileName);
+            writeObject(STAGING, staging); 
+        } 
+
+        if(!tracked && !staged) { 
+            throw new GitletException("No reason to remove the file.");
+        }
+    }
+
+    // ============================================================================= 
+    // Log 
+    public void log() { 
+        commits = getCommits(); 
+        Commit head = getHead(); 
+        while(head != null) { 
+            printLog(head); 
+            if(head.getParent() != null) { 
+                head = commits.get(head.getParent());
+            } else { 
+                break;
+            }
+        }
+    }
+
+    public void printLog(Commit commit) { 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z"); 
+        System.out.println("==="); 
+        System.out.println("Commit: "commit.getSHA()); 
+        System.out.println("Date: "dateFormat.commit.getDate()); 
+        System.out.println("Message: "commit.getMessage()); 
+        System.out.println("\n"); 
+    } 
+
+    public void fullLog() { 
+        List<String> keys = new ArrayList<>(getCommits().keySet()); 
+        Collections.reverse(keys);
+        for(String id : keys) { 
+            Commit c = getCommits().get(id); 
+            printLog(c);
+        }
+    }
+
+    // ==================================================================================
+
+
 }
