@@ -192,16 +192,32 @@ public class Repository {
         System.out.println("\n"); 
     } 
 
-    public void fullLog() { 
-        List<String> keys = new ArrayList<>(getCommits().keySet()); 
+    public void globalLog() { 
+        commits = getCommits();
+        List<String> keys = new ArrayList<>(commits.keySet()); 
         Collections.reverse(keys);
         for(String id : keys) { 
-            Commit c = getCommits().get(id); 
+            Commit c = commits.get(id); 
             printLog(c);
         }
     }
 
     // ==================================================================================
+    // print the shaid for commits with the given message 
+    
+    public void find(String message) { 
+        commits = getCommits(); 
+        boolean contains = false; 
+        for(String key : commits.keySet()) { 
+            if(commits.get(key).getMessage().equals(message)) { 
+                System.out.println(commits.get(key).getSHA()); 
+                contains = true;
+            }
 
+            if(!contains) { 
+                throw new GitletException("Found no commit with that message.");
+            }
+        }
+    }
 
 }
