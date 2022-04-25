@@ -220,4 +220,70 @@ public class Repository {
         }
     }
 
+    // ===================================================================================== 
+
+    public void status() { 
+        ArrayList<String> branches = new ArrayList<>(); 
+        for(String branch : plainFilenamesIn(BRANCHES)) { 
+            if(!branch.equals("HEAD")) { 
+                if(branch.equals(readContentsAsString(HEAD))) { 
+                    branches.add("*" + branch);
+                } else { 
+                    branches.add(branch);
+                }
+            }
+        }
+
+        ArrayList<String> staged = new ArrayList<>();
+        stage = getStage();
+        for(String file : stage.getAdded().keySet()) { 
+            staged.add(file);
+        }
+
+        ArrayList<String> removed = stage.getRemoved();
+        ArrayList<String> unstaged = new ArrayList<>(); 
+        
+        for(String file : plainFilenamesIn(CWD)) { 
+            byte[] cwdContents = readContents(join(CWD, file); 
+            
+            if(getHead().getBlobs().containsKey(file) && join(BLOBS, getHead().getBlobs().get(file)).exists()) { 
+                byte[] commitContents = readContents(join(BLOBS, getHead().getBlobs().get(file)); 
+
+                if(!Arrays.equals(cwdContents, commitContents) && !stage.getAdded().containsKey(file)) { 
+                    unstaged.add(file + " (modified)");
+                }
+
+                }
+            }
+
+            if(stage.getAdded().containsKey(file) && !staged.contains(file) 
+                    && !cwdContents.equals(readContents(join(BLOBS, stage.getAdded().get(file)))))) { 
+                unstaged.add(file + " (modified)");
+            }
+
+        }
+
+        for(String file : stage.getAdded().keySet()) { 
+            if(!plainFilenamesIn(CWD).contains(file)) { 
+                unstaged.add(file + " (deleted)");
+            }
+        }
+
+        for(String file : getHead().getBlobs().keySet()) { 
+            if(!plainFilenamesIn(CWD).contains(file) && !stage.getRemoved().contains(file)) {) { 
+                unstaged.add(file + " (deleted)");
+            }
+        }
+
+
+        ArrayList<String> untracked = new ArrayList<>();
+        for(String file : plainFilenamesIn(CWD)) { 
+            if(!getHead().getBlobs().containsKey(file) && !stage.getAdded().containsKey(file)) { 
+                untracked.add(file);
+            }
+        }
+
+        statusOutput(branches, staged, removed, unstaged, untracked);
+    }
+
 }
