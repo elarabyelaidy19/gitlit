@@ -223,7 +223,9 @@ public class Repository {
     // ===================================================================================== 
 
     public void status() { 
+        // enumerate on all branches 
         ArrayList<String> branches = new ArrayList<>(); 
+        
         for(String branch : plainFilenamesIn(BRANCHES)) { 
             if(!branch.equals("HEAD")) { 
                 if(branch.equals(readContentsAsString(HEAD))) { 
@@ -234,12 +236,14 @@ public class Repository {
             }
         }
 
+        // print staged files
         ArrayList<String> staged = new ArrayList<>();
         stage = getStage();
         for(String file : stage.getAdded().keySet()) { 
             staged.add(file);
         }
 
+        // 
         ArrayList<String> removed = stage.getRemoved();
         ArrayList<String> unstaged = new ArrayList<>(); 
         
@@ -248,34 +252,33 @@ public class Repository {
             
             if(getHead().getBlobs().containsKey(file) && join(BLOBS, getHead().getBlobs().get(file)).exists()) { 
                 byte[] commitContents = readContents(join(BLOBS, getHead().getBlobs().get(file)); 
-
-                if(!Arrays.equals(cwdContents, commitContents) && !stage.getAdded().containsKey(file)) { 
+                // unstaged and commit contents does not match cwd content.
+                if(!Arrays.equals(cwdContents, commitContents) && !stage.getAdded().containsKey(file)/*unstaged */) { 
                     unstaged.add(file + " (modified)");
                 }
-
-                }
             }
-
+            
             if(stage.getAdded().containsKey(file) && !staged.contains(file) 
                     && !cwdContents.equals(readContents(join(BLOBS, stage.getAdded().get(file)))))) { 
-                unstaged.add(file + " (modified)");
+                unstaged.add(file + " (modified)"); 
             }
 
         }
 
+        // staged for addition but deleted from cwd 
         for(String file : stage.getAdded().keySet()) { 
             if(!plainFilenamesIn(CWD).contains(file)) { 
                 unstaged.add(file + " (deleted)");
             }
         }
-
+        // not staged for removal, but tracked in the current commit and deleted from cwd
         for(String file : getHead().getBlobs().keySet()) { 
             if(!plainFilenamesIn(CWD).contains(file) && !stage.getRemoved().contains(file)) {) { 
                 unstaged.add(file + " (deleted)");
             }
         }
 
-
+        // untracked files is present in cwd but not staged or trcked<saved in blobs>
         ArrayList<String> untracked = new ArrayList<>();
         for(String file : plainFilenamesIn(CWD)) { 
             if(!getHead().getBlobs().containsKey(file) && !stage.getAdded().containsKey(file)) { 
@@ -286,4 +289,47 @@ public class Repository {
         statusOutput(branches, staged, removed, unstaged, untracked);
     }
 
+
+    public void statusOutput(ArrayList<String> branches 
+                             ArrayList<String> staged 
+                             ArrayList<String> removed 
+                             ArrayList<String> unstaged 
+                             ArrayList<String> untracked) { 
+
+    
+        System.out.println("==== Branches ======"); 
+        for(String branch : branches) { 
+            System.out.println(branch);
+        } 
+
+        System.out.print("\n"); 
+        System.out.println("=== Staged Files === ");
+        for(String file : staged) { 
+            System.out.println(file);
+        }
+
+        
+        System.out.print("\n"); 
+        System.out.println("=== Removed Files === ");
+        for(String file : removed) { 
+            System.out.println(file);
+        }
+
+        
+        System.out.print("\n"); 
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        for(String file : unstaged) { 
+            System.out.println(file);
+        }
+
+        
+        System.out.print("\n"); 
+        System.out.println("=== Untracked Files === ");
+        for(String file : untracked) { 
+            System.out.println(file);
+        }
+
+        System.out.println("\n");
+        
+    }
 }
