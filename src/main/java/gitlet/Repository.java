@@ -20,7 +20,7 @@ public class Repository {
     private StagingArea stage;
     // commits file
     private File COMMITS;
-    // map sha id to commit
+    // map sha id to commit object
     private TreeMap<String, Commit> commits;
     // points to the head of each branch
     private File BRANCHES;
@@ -94,6 +94,7 @@ public class Repository {
         writeContents(STAGING, stage);
     }
 
+    // Return an object of type StagingArea read from FILE STAGING, casting it to StagingArea class.
     public StagingArea getStage() {
         return readObject(STAGING, StagingArea.class);
     }
@@ -226,6 +227,8 @@ public class Repository {
         // enumerate on all branches 
         ArrayList<String> branches = new ArrayList<>(); 
         
+        // add * if it is the master branch else add it to branches 
+        // master branch found in Branches/HEAD
         for(String branch : plainFilenamesIn(BRANCHES)) { 
             if(!branch.equals("HEAD")) { 
                 if(branch.equals(readContentsAsString(HEAD))) { 
@@ -258,6 +261,7 @@ public class Repository {
                 }
             }
             
+            // staged but the content is diffrent of the current working dir
             if(stage.getAdded().containsKey(file) && !staged.contains(file) 
                     && !cwdContents.equals(readContents(join(BLOBS, stage.getAdded().get(file)))))) { 
                 unstaged.add(file + " (modified)"); 
@@ -331,5 +335,68 @@ public class Repository {
 
         System.out.println("\n");
         
+    } 
+
+    // takes nultiple args chech third arg filename  
+    // overwrite the file present in the WD with content of file in the head commit
+    public void checkOut1(String... args) { 
+        String fileName = args[2];
+        Commit headCommit = getHead(); 
+        if(!headCommit.getBlobs().containsKey(fileName)) { 
+            throw new GitletException("file does not exit in that commit");
+        }
+
+        if(headCommit.getBlobs().containsKey(fileName)) { 
+            overWriteBlob(fileName, headCommit);
+        }
+
+    }   
+
+    // takes commit id and file name
+    public void checkOut12(String... args) { 
+        String commitId = abbrevatedSha(args[1]); 
+        String fileName = args[3]; 
+        if(!args[2].equals("--")) { 
+            throw new GitletException("incorrect operand");
+        }
+
+        commits = getCommits(); 
+        Commit targetedCommit = commits.get(commitId); 
+
+        if(targetedCommit == null) { 
+            throw new GitletException("no commit with taha id exists"); 
+        }
+
+        if(targetedCommit.getBlobs().containsKey(fileName)) { 
+            overWriteBlob(fileName, targetedCommit);
+        } else { 
+            throw new GitletException("file does not exist in that commit")
+        }
+
+
+    }
+    public void overWriteBlob(File fileName, Commit blob) { 
+        String blobSha = blob.getBlobs().get(fileName); 
+        File blobPath = join(BLOBS, blobSha); 
+        byte[] writtenBlob = readContents(blobPath); 
+        File overwrittenFile = join(CWD, fileName); 
+        writeContents(overwrittenFile, writtenBlob); 
+    }
+
+    public String abbrevatedSha(String id) { 
+        final int len = 40; 
+        
+        if(id.length() == len) 
+            return id;
+        
+        commits = getCommits(); 
+        for(String key : commits.keySet()) { 
+            if(key.startsWith(id)) 
+                return key;
+        }
+
+        throw new GitletException("commit doesn't exists");
+
+
     }
 }
