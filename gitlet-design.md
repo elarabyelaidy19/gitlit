@@ -86,6 +86,11 @@
     - takes two args commit id and file name.
     - find the file name in the commit and overwrite the content of that file in the wd.
   
+  - **CheckOut3**: checkout to a specific branch. 
+    - takes the branch name.
+    - puts all files in the commit of the head of the branch in the wd, overwrite files if exist. 
+    - any file tracked in the current branch but not in the commit of the branch is removed.
+    - update the head branch to the specified branch. 
 
 
 
