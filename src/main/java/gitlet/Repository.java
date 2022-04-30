@@ -341,6 +341,17 @@ public class Repository {
 
         System.out.println("\n");
 
+    } 
+
+    public void checkout(String... args) { 
+        if(args.length == 3)  
+            checkOut1(args); 
+        
+        if(args.length == 4) 
+            checkOut2(args); 
+        
+        if(args.length == 2) 
+            checkOut3(args);
     }
 
     // takes nultiple args chech third arg filename
@@ -382,7 +393,7 @@ public class Repository {
 
     }
 
-    // params branch, checkout all files in the head of the specified branch.
+    // params branch name, checkout all files in the head of the specified branch.
     public void checkOut3(String... args) { 
         String branchName = args[1]; 
         File branch = join(BRANCHES, branchName); 
@@ -395,7 +406,7 @@ public class Repository {
         Commit branchHead = commits.get(readContentsAsString(branch)); 
         Commit currentHead = getHead();
 
-        // 
+        // If a working file is untracked in the current branch and would be overwritten by the checkout 
         for(String file : plainFilenamesIn(CWD)) { 
             if(!currentHead.getBlobs().containsKey(file)) { 
                 if(branchHead.getBlobs().containsKey(file)) { 
