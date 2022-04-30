@@ -1,9 +1,11 @@
 package gitlet;
 
 import java.io.File;
-import java.util.TreeMap;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static gitlet.Utils.*;
+import static sun.security.util.Debug.args;
 
 /** 
  *  @author Elaraby Elaidy
@@ -30,6 +32,7 @@ public class Repository {
     private File MASTER;
     // storing blobs
     private File BLOBS;
+    private String fileName;
 
 
     public Repository() {
@@ -90,7 +93,7 @@ public class Repository {
         } 
 
         //add file to staging and update content
-        stage.add(fileName, toAdd.getSHA); 
+        stage.add(fileName, toAdd.getSHA);
         writeContents(STAGING, stage);
     }
 
@@ -118,7 +121,7 @@ public class Repository {
             throw new GitletException("nothing to commits");
         }
 
-        Commit newCommit = new Commit(message, getHead().getSHA, mergeParent);
+        Commit newCommit = new Commit(message, getHead().getSha1(), mergeParent);
         for(String key: getHead().getBlobs().keySet()) { 
             if(!stage.getRemoved().contains(key)) { 
                 newCommit.getBlobs().put(key, getHead().getBlobs().get(key)); 
@@ -127,17 +130,20 @@ public class Repository {
 
         for(String key : stage.getAdded().keySet()) { 
             String shaId = stage.getAdded().get(key); 
-            if(!newCommit.getBlobs().contains(shaId)) { 
+            if(!newCommit.getBlobs().containsKey(shaId)) {
                 newCommit.getBlobs().put(key, shaId);
             }
         }
 
         commits = getCommits(); 
-        commits.put(newCommit.getSHA(), newCommit); 
+        commits.put(newCommit.getSha1(), newCommit);
         writeObject(COMMITS, commits); 
-        updateActiveBranch(newCommit.getSHA());
+        updateActiveBranch(newCommit.getSha1());
         stage.clear(); 
         writeObject(STAGING, stage);
+    }
+
+    private void updateActiveBranch(String sha1) {
     }
 
     public TreeMap<String, Commit> getCommits() { 
@@ -161,7 +167,7 @@ public class Repository {
             stage.unStage(fileName); 
             stage.remove(fileName); 
             restrictedDelete(fileName);
-            writeObject(STAGING, staging); 
+            writeObject(STAGING, stage);
         } 
 
         if(!tracked && !staged) { 
@@ -185,17 +191,17 @@ public class Repository {
     }
 
     public void printLog(Commit commit) { 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z"); 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z");
         System.out.println("==="); 
-        System.out.println("Commit: "commit.getSHA()); 
-        System.out.println("Date: "dateFormat.commit.getDate()); 
-        System.out.println("Message: "commit.getMessage()); 
+        System.out.println("Commit: "+ commit.getSha1());
+        System.out.println("Date: "+ dateFormat.commit.getDate());
+        System.out.println("Message: "+ commit.getMessage());
         System.out.println("\n"); 
     } 
 
     public void globalLog() { 
         commits = getCommits();
-        List<String> keys = new ArrayList<>(commits.keySet()); 
+        List<String> keys = new ArrayList<>(commits.keySet());
         Collections.reverse(keys);
         for(String id : keys) { 
             Commit c = commits.get(id); 
@@ -211,7 +217,7 @@ public class Repository {
         boolean contains = false; 
         for(String key : commits.keySet()) { 
             if(commits.get(key).getMessage().equals(message)) { 
-                System.out.println(commits.get(key).getSHA()); 
+                System.out.println(commits.get(key).getSha1());
                 contains = true;
             }
 
@@ -223,17 +229,17 @@ public class Repository {
 
     // ===================================================================================== 
 
-    public void status() { 
+    public String status() {
         // enumerate on all branches 
-        ArrayList<String> branches = new ArrayList<>(); 
-        
+        ArrayList<String> branches = new ArrayList<>();
+
         // add * if it is the master branch else add it to branches 
         // master branch found in Branches/HEAD
-        for(String branch : plainFilenamesIn(BRANCHES)) { 
-            if(!branch.equals("HEAD")) { 
-                if(branch.equals(readContentsAsString(HEAD))) { 
+        for(String branch : plainFilenamesIn(BRANCHES)) {
+            if(!branch.equals("HEAD")) {
+                if(branch.equals(readContentsAsString(HEAD))) {
                     branches.add("*" + branch);
-                } else { 
+                } else {
                     branches.add(branch);
                 }
             }
@@ -242,50 +248,50 @@ public class Repository {
         // print staged files
         ArrayList<String> staged = new ArrayList<>();
         stage = getStage();
-        for(String file : stage.getAdded().keySet()) { 
+        for(String file : stage.getAdded().keySet()) {
             staged.add(file);
         }
 
         // 
         ArrayList<String> removed = stage.getRemoved();
-        ArrayList<String> unstaged = new ArrayList<>(); 
-        
-        for(String file : plainFilenamesIn(CWD)) { 
-            byte[] cwdContents = readContents(join(CWD, file); 
-            
-            if(getHead().getBlobs().containsKey(file) && join(BLOBS, getHead().getBlobs().get(file)).exists()) { 
-                byte[] commitContents = readContents(join(BLOBS, getHead().getBlobs().get(file)); 
+        ArrayList<String> unstaged = new ArrayList<>();
+
+        for(String file : plainFilenamesIn(CWD)) {
+            byte[] cwdContents = readContents(join(CWD, file);
+
+            if(getHead().getBlobs().containsKey(file) && join(BLOBS, getHead().getBlobs().get(file)).exists()) {
+                byte[] commitContents = readContents(join(BLOBS, getHead().getBlobs().get(file));
                 // unstaged and commit contents does not match cwd content.
-                if(!Arrays.equals(cwdContents, commitContents) && !stage.getAdded().containsKey(file)/*unstaged */) { 
+                if(!Arrays.equals(cwdContents, commitContents) && !stage.getAdded().containsKey(file)/*unstaged */) {
                     unstaged.add(file + " (modified)");
                 }
             }
-            
+
             // staged but the content is diffrent of the current working dir
-            if(stage.getAdded().containsKey(file) && !staged.contains(file) 
-                    && !cwdContents.equals(readContents(join(BLOBS, stage.getAdded().get(file)))))) { 
-                unstaged.add(file + " (modified)"); 
+            if(stage.getAdded().containsKey(file) && !staged.contains(file)
+                    && !cwdContents.equals(readContents(join(BLOBS, stage.getAdded().get(file)))))) {
+                unstaged.add(file + " (modified)");
             }
 
         }
 
         // staged for addition but deleted from cwd 
-        for(String file : stage.getAdded().keySet()) { 
-            if(!plainFilenamesIn(CWD).contains(file)) { 
+        for(String file : stage.getAdded().keySet()) {
+            if(!plainFilenamesIn(CWD).contains(file)) {
                 unstaged.add(file + " (deleted)");
             }
         }
         // not staged for removal, but tracked in the current commit and deleted from cwd
-        for(String file : getHead().getBlobs().keySet()) { 
-            if(!plainFilenamesIn(CWD).contains(file) && !stage.getRemoved().contains(file)) {) { 
+        for(String file : getHead().getBlobs().keySet()) {
+            if(!plainFilenamesIn(CWD).contains(file) && !stage.getRemoved().contains(file)) {) {
                 unstaged.add(file + " (deleted)");
             }
         }
 
         // untracked files is present in cwd but not staged or trcked<saved in blobs>
         ArrayList<String> untracked = new ArrayList<>();
-        for(String file : plainFilenamesIn(CWD)) { 
-            if(!getHead().getBlobs().containsKey(file) && !stage.getAdded().containsKey(file)) { 
+        for(String file : plainFilenamesIn(CWD)) {
+            if(!getHead().getBlobs().containsKey(file) && !stage.getAdded().containsKey(file)) {
                 untracked.add(file);
             }
         }
@@ -294,104 +300,154 @@ public class Repository {
     }
 
 
-    public void statusOutput(ArrayList<String> branches 
-                             ArrayList<String> staged 
-                             ArrayList<String> removed 
-                             ArrayList<String> unstaged 
-                             ArrayList<String> untracked) { 
+    public void statusOutput(ArrayList<String> branches,
+                             ArrayList<String> staged,
+                             ArrayList<String> removed,
+                             ArrayList<String> unstaged,
+                             ArrayList<String> untracked) {
 
-    
-        System.out.println("==== Branches ======"); 
-        for(String branch : branches) { 
+
+        System.out.println("==== Branches ======");
+        for(String branch : branches) {
             System.out.println(branch);
-        } 
+        }
 
-        System.out.print("\n"); 
+        System.out.print("\n");
         System.out.println("=== Staged Files === ");
-        for(String file : staged) { 
+        for(String file : staged) {
             System.out.println(file);
         }
 
-        
-        System.out.print("\n"); 
+
+        System.out.print("\n");
         System.out.println("=== Removed Files === ");
-        for(String file : removed) { 
+        for(String file : removed) {
             System.out.println(file);
         }
 
-        
-        System.out.print("\n"); 
+
+        System.out.print("\n");
         System.out.println("=== Modifications Not Staged For Commit ===");
-        for(String file : unstaged) { 
+        for(String file : unstaged) {
             System.out.println(file);
         }
 
-        
-        System.out.print("\n"); 
+
+        System.out.print("\n");
         System.out.println("=== Untracked Files === ");
-        for(String file : untracked) { 
+        for(String file : untracked) {
             System.out.println(file);
         }
 
         System.out.println("\n");
-        
-    } 
 
-    // takes nultiple args chech third arg filename  
+    }
+
+    // takes nultiple args chech third arg filename
     // overwrite the file present in the WD with content of file in the head commit
-    public void checkOut1(String... args) { 
+    public void checkOut1(String... args) {
         String fileName = args[2];
-        Commit headCommit = getHead(); 
-        if(!headCommit.getBlobs().containsKey(fileName)) { 
+        Commit headCommit = getHead();
+        if(!headCommit.getBlobs().containsKey(fileName)) {
             throw new GitletException("file does not exit in that commit");
         }
 
-        if(headCommit.getBlobs().containsKey(fileName)) { 
+        if(headCommit.getBlobs().containsKey(fileName)) {
             overWriteBlob(fileName, headCommit);
         }
 
-    }   
+    }
 
     // takes commit id and file name
-    public void checkOut12(String... args) { 
-        String commitId = abbrevatedSha(args[1]); 
-        String fileName = args[3]; 
-        if(!args[2].equals("--")) { 
+    public void checkOut2(String... args) {
+        String commitId = abbrevatedSha(args[1]);
+        String fileName = args[3];
+        if(!args[2].equals("--")) {
             throw new GitletException("incorrect operand");
         }
 
-        commits = getCommits(); 
-        Commit targetedCommit = commits.get(commitId); 
+        commits = getCommits();
+        Commit targetedCommit = commits.get(commitId);
 
-        if(targetedCommit == null) { 
-            throw new GitletException("no commit with taha id exists"); 
+        if(targetedCommit == null) {
+            throw new GitletException("no commit with taha id exists");
         }
 
-        if(targetedCommit.getBlobs().containsKey(fileName)) { 
+        if(targetedCommit.getBlobs().containsKey(fileName)) {
             overWriteBlob(fileName, targetedCommit);
-        } else { 
+        } else {
             throw new GitletException("file does not exist in that commit")
         }
 
 
     }
-    public void overWriteBlob(File fileName, Commit blob) { 
-        String blobSha = blob.getBlobs().get(fileName); 
-        File blobPath = join(BLOBS, blobSha); 
-        byte[] writtenBlob = readContents(blobPath); 
-        File overwrittenFile = join(CWD, fileName); 
-        writeContents(overwrittenFile, writtenBlob); 
+
+    // params branch, checkout all files in the head of the specified branch.
+    public void checkOut3(String... args) { 
+        String branchName = args[1]; 
+        File branch = join(BRANCHES, branchName); 
+        commits = getCommits(); 
+
+        if(!join(BRANCHES, branchName).exists()) { 
+            throw new GitletException("no such branch exists"); 
+        }
+
+        Commit branchHead = commits.get(readContentsAsString(branch)); 
+        Commit currentHead = getHead();
+
+        // 
+        for(String file : plainFilenamesIn(CWD)) { 
+            if(!currentHead.getBlobs().containsKey(file)) { 
+                if(branchHead.getBlobs().containsKey(file)) { 
+                    byte[] cwdContents = readContents(join(CWD, file)); 
+                    byte[] overWriteContents = readContents(join(BLOBS, branchHead.getBlobs().get(file))); 
+                    if(!cwdContents.equals(overWriteContents)) { 
+                        throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+                    }
+                }
+            }
+        } 
+
+        // check if the the current branch is the head branch 
+        if(branchName.equals(readContentsAsString(HEAD)) { 
+            throw new GitletException("no need to checkout the current branch"); 
+        }
+
+        // overwrite files in the cwd with the files in the given branch. 
+        for(String file : branchHead.getBlobs().keySet()) { 
+            overWriteBlob(file, branchHead);
+        } 
+
+        // files tracked in the current branch but not presnted in the checked-out branch are deleted.
+        for(String file : getHead().getBlobs().keySet()) { 
+            if(!branchHead.getBlobs().keySet().contains(file)) 
+                restrictedDelete(file);
+        }
+        // clear the staging area.
+        stage.clear(); 
+
+        // update the head branch
+        writeContents(HEAD, branchName); 
+
+
+    }
+    public void overWriteBlob(File fileName, Commit blob) {
+        String blobSha = blob.getBlobs().get(fileName);
+        File blobPath = join(BLOBS, blobSha);
+        byte[] writtenBlob = readContents(blobPath);
+        File overwrittenFile = join(CWD, fileName);
+        writeContents(overwrittenFile, writtenBlob);
     }
 
-    public String abbrevatedSha(String id) { 
-        final int len = 40; 
-        
-        if(id.length() == len) 
+    public String abbrevatedSha(String id) {
+        final int len = 40;
+
+        if(id.length() == len)
             return id;
-        
-        commits = getCommits(); 
-        for(String key : commits.keySet()) { 
-            if(key.startsWith(id)) 
+
+        commits = getCommits();
+        for(String key : commits.keySet()) {
+            if(key.startsWith(id))
                 return key;
         }
 

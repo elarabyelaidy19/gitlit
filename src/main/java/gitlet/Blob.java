@@ -8,6 +8,7 @@ import static gitlet.Utils.*;
 
 public class Blob implements Serializable {
 
+    public String getSHA;
     // content of source file
     private  byte[] content;
 

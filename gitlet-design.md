@@ -1,23 +1,12 @@
 # Gitlet Design Document
 
-![uml diagram](Main.png)
+
 
 **Name**: Elaraby Elaidy
 
 # Classes and Data Structures
 
 # Structur of working directory 
-.
-├── ...
-├── .gitlet                                
-│   ├── Commit            
-│   ├── Blobs   
-|   ├── staging.txt           
-│   ├── Branches 
-│       ├── HEAD 
-|       ├── master
-└── 
-
 
 
 
