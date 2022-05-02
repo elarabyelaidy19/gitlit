@@ -463,7 +463,17 @@ public class Repository {
         }
 
         throw new GitletException("commit doesn't exists");
+    }
 
+    // create new branch and points it at the current head commit
+    public void branch(String branchName) { 
+        for(String branch : plainFilenamesIn(BRANCHES)) { 
+            if(branch.equals(branchName)) { 
+                throw new GitletException("A branch with that name is already exists");
+            }
+        }
 
+        File newBranch = join(BRANCHES, branchName); 
+        writeContents(newBranch, getHead().getSHA());
     }
 }
