@@ -517,10 +517,15 @@ public class Repository {
             if(!newHead.getBlobs().containsKey(file)) { 
                 restrictedDelete(file);
             }
-        }
-
-        
-
+        }   
+        // clear stage
+        stage.clear();
+        // update stage state 
+        writeObject(STAGING, stage);  
+        // update the current branch
+        writeContents(join(BRANCHES, currBranch), newHead.getSHA()); 
+        // move the head pointer 
+        writeContents(HEAD, currBranch);
     }
 
 }
