@@ -100,7 +100,9 @@
     - if it is the active branch throw exception.
     - delete the pointer only.
 
-- **overWriteBlob**: takes the 
+- **overWriteBlob**: overwrite the content of a file in the wd with the file in a specified commit. 
+    - takes the commit id and file name. 
+    - overwrite the content of the file in the wd with the content of the file in the commit.
 
 
 
