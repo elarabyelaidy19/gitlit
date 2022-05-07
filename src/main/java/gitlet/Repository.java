@@ -441,9 +441,10 @@ public class Repository {
         writeContents(HEAD, branchName); 
 
 
-    }
-    public void overWriteBlob(File fileName, Commit blob) {
-        String blobSha = blob.getBlobs().get(fileName);
+    } 
+    // overwrite the content in the CWD with the content of the commit 
+    public void overWriteBlob(File fileName, Commit commit) {
+        String blobSha = commit.getBlobs().get(fileName);
         File blobPath = join(BLOBS, blobSha);
         byte[] writtenBlob = readContents(blobPath);
         File overwrittenFile = join(CWD, fileName);
@@ -476,4 +477,50 @@ public class Repository {
         File newBranch = join(BRANCHES, branchName); 
         writeContents(newBranch, getHead().getSHA());
     }
+
+    // remove the HEAD pointer of the specified branch.  
+    // 
+    public void rmvBranch(String branchName) {  
+        // if the branch is the current active branch do not remove
+        if(branchName.equalsIgnoreCase(readContentsAsString(HEAD))) { 
+            throw new GitletException("can not remove the current branch."); 
+        } else if(join(BRANCHES, branchName).exists()) { 
+            join(BRANCHES, branchName).delete();
+        } else { 
+            throw new GitletException("a Branch with that name does'nt exists");
+        }
+    }
+
+    public void reset(String commitId) { 
+        String currBranch = readContentsAsString(HEAD); 
+        commits = getCommits(); 
+        stage = getStage(); 
+
+        if(!commits.contains(commitId)) { 
+            throw new GitletException("no commit with that id exists"); 
+        }
+
+        Commit newHead = commits.get(commitId); 
+        // file not tracked in the current head and will be overwritten.
+        for(String file : plainFilenamesIn(CWD)) { 
+            if(!getHead().getBlobs().containsKey(file) && newHead.getBlobs().containsKey(file)) { 
+                throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
+        // overwrite each file in the newHead
+        for(String file : newHead.getBlobs().keySet()) { 
+            overWriteBlob(file, newHead);
+        } 
+
+        // delete file presents in the cwd and not founded in the newHead
+        for(String file : plainFilenamesIn(CWD)) { 
+            if(!newHead.getBlobs().containsKey(file)) { 
+                restrictedDelete(file);
+            }
+        }
+
+        
+
+    }
+
 }

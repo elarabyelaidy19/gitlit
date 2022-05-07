@@ -77,6 +77,9 @@
         - Not staged for removal, but tracked in the current commit and deleted from the working directory.  
     - **Print Untracked files**: files not tracked if it is not staged or tracked and present in WD .
 
+
+**Checkout**: all what it does is moving the head pointer to a specific commit or branch. 
+
 - **CheckOut1**: back in time to the previous version of file.
     - overwrite the content of the file with the content of the file commit in the head commit. 
     - find file in head commit by name and get the sha1 of the file, read content of the path blob/sha. 
@@ -86,12 +89,18 @@
     - takes two args commit id and file name.
     - find the file name in the commit and overwrite the content of that file in the wd.
   
-  - **CheckOut3**: checkout to a specific branch. 
+- **CheckOut3**: checkout to a specific branch. 
     - takes the branch name.
     - puts all files in the commit of the head of the branch in the wd, overwrite files if exist. 
     - any file tracked in the current branch but not in the commit of the branch is removed.
     - update the head branch to the specified branch. 
 
+- **rmvBranch**: delete the head pointer of a specified branch.
+    - if not find throw exception.
+    - if it is the active branch throw exception.
+    - delete the pointer only.
+
+- **overWriteBlob**: takes the 
 
 
 
