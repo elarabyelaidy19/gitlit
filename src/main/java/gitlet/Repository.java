@@ -535,7 +535,7 @@ public class Repository {
     // list of commit parents
     public String whoIsYourParent(Commit c) { 
         ArrayList<String> ancestry = new ArrayList<>(); 
-        ancestry.add(c.getSHA); 
+        ancestry.add(c.getSHA()); 
 
         while(c != null) { 
             if (c.getMergeParent() != null) { 
@@ -587,6 +587,7 @@ public class Repository {
                 + "=======" + "\n"
                 + otherContents
                 + ">>>>>>>" + "\n"; 
+        
         writeContents(fileConflicted, content); 
         Blob newBlob = new Blob(fileConflicted); 
         stage.add(file, newBlob.getSHA()); 

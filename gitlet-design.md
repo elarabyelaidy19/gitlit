@@ -104,7 +104,13 @@
     - takes the commit id and file name. 
     - overwrite the content of the file in the wd with the content of the file in the commit.
 
-- **merge**:
+- **merge**: 
+
+- **SplitCommit**: find split commit of two commits 
+    -  find if there is a split commit between two commits. 
+
+- **whoIsYourParent**: list parents of the current commit. 
+    - return list of parents of the commit.
 
 
 
