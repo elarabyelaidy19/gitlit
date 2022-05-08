@@ -143,7 +143,10 @@ public class Repository {
         writeObject(STAGING, stage);
     }
 
-    private void updateActiveBranch(String sha1) {
+    private void updateActiveBranch(String sha1) { 
+        String activeBranch = readContentsAsString(HEAD); 
+        File activeBranchFile = join(BRANCHES, activeBranch);
+        writeContents(activeBranchFile. sha1);
     }
 
     public TreeMap<String, Commit> getCommits() { 
@@ -591,4 +594,10 @@ public class Repository {
         return true;
     }
 
+
+    public void updateActiveBranch
+
+    public File getRepository() { 
+        return GITLETREPO;
+    }
 }
