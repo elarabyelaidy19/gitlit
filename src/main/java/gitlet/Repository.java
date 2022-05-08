@@ -564,8 +564,31 @@ public class Repository {
         return null;
     }
 
+    // handle merge conflict
     public boolean mergeConflict(HashMap<String, String> head, HashMap<String, String> other, File file) { 
-        
+        if(head.contains(file)) { 
+            headContent = readContentsAsString(join(BLOBS, head.get(file)));
+        } else { 
+            headContent = " ";
+        }
+
+        if(other.contains(file)) { 
+            otherContent = readContentsAsString(join(BLOBS, other.get(file)));
+        } else { 
+            otherContent = " "; 
+        }
+
+        File fileConflicted = join(CWD, file); 
+         String contents = "<<<<<<< HEAD" + "\n"
+                + headContents
+                + "=======" + "\n"
+                + otherContents
+                + ">>>>>>>" + "\n"; 
+        writeContents(fileConflicted, content); 
+        Blob newBlob = new Blob(fileConflicted); 
+        stage.add(file, newBlob.getSHA()); 
+        writeObject(STAGING, stage);
+        return true;
     }
 
 }
