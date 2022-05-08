@@ -104,7 +104,7 @@
     - takes the commit id and file name. 
     - overwrite the content of the file in the wd with the content of the file in the commit.
 
-
+- **merge**:
 
 
 

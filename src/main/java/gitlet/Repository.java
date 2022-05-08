@@ -451,6 +451,7 @@ public class Repository {
         writeContents(overwrittenFile, writtenBlob);
     }
 
+    
     public String abbrevatedSha(String id) {
         final int len = 40;
 
@@ -526,6 +527,45 @@ public class Repository {
         writeContents(join(BRANCHES, currBranch), newHead.getSHA()); 
         // move the head pointer 
         writeContents(HEAD, currBranch);
+    } 
+
+    // list of commit parents
+    public String whoIsYourParent(Commit c) { 
+        ArrayList<String> ancestry = new ArrayList<>(); 
+        ancestry.add(c.getSHA); 
+
+        while(c != null) { 
+            if (c.getMergeParent() != null) { 
+                ancestry.add(c.getMergeParent());
+            }
+
+            ancestry.add(c.getParent()); 
+            if(c != null) { 
+                c = commits.get(c.getParent());
+            } else { 
+                break;
+            }
+        }
+        return ancestry;
+    } 
+
+    // find the split commit of two commits
+    public String splitCommit(Commit current, Commit other) { 
+        commits = getCommits(); 
+
+        ArrayList<String> headAncestors = whoIsYourParent(current); 
+        ArrayList<String> otherAncestors = whoIsYourParent(other); 
+
+        for(String ancestor : headAncestors) { 
+            if(otherAncestors.contains(ancestor)) { 
+                return ancestor;
+            }
+        }
+        return null;
+    }
+
+    public boolean mergeConflict(HashMap<String, String> head, HashMap<String, String> other, File file) { 
+        
     }
 
 }
