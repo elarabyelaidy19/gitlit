@@ -530,7 +530,86 @@ public class Repository {
         writeContents(join(BRANCHES, currBranch), newHead.getSHA()); 
         // move the head pointer 
         writeContents(HEAD, currBranch);
-    } 
+    }  
+
+    public boolean mergeLogic(Commit split, Commit headBranch, Commit otherBranch, String file) { 
+        HashMap<String, String> splitBlobs = split.getBlobs(); 
+        HashMap<String, String> headBlobs = headBranch.getBlobs(); 
+        HashMap<String, String> otherBlobs = otherBranch.getBlobs(); 
+
+        stage = getStage();
+
+        // if split contains file and this file unchanged in headBranch and changed in other branch check to other branch 
+        if(splitBlobs.containsKey(file)) { 
+            if(splitBlobs.get(file).equals(headBlobs.get(file)) && !splitBlobs.get(file).equals(otherBlobs.get(file)) 
+                && otherBlobs.containsKey(file)) { 
+                checkout("checkout", otherBranch.getSHA(), "--", file); 
+                stage.add(file, otherBranch.get(file));
+                writeObject(STAGING, stage);
+                return false;
+            }
+
+            // if file in split changed in headBranch and and not changed in other keep it.
+            if(splitBlobs.get(file).equals(otherBlobs.get(file)) && !splitBlobs.get(file).equals(headBlobs.get(file)) 
+                && headBlobs.containsKey(file)) { 
+                    return false;
+            }
+
+            // if file presents in boths commits and  equals or not presnts in both keep it, and no conflict.
+            if(headBlobs.containsKey(file) && otherBlobs.containsKey(file) && otherBlobs.get(file).equals(headBlobs.get(file)) 
+                || !headBlobs.containsKey(file) && otherBlobs.containsKey(file)) { 
+                    return false;
+            }
+
+            // if file in head equal file in split and not presnt in other delet it. stage file and update.
+            if(splitBlobs.get(file).equals(headBlobs.get(file)) && !otherBlobs.containsKey(file)) { 
+                rm(file); 
+                writeObject(STAGING, stage);
+                return false; 
+            }
+
+            // file in split equals file in other and not presnts in head branch not doing anything.
+            if(splitBlobs.get(file).equals(otherBlobs.get(file) && !headBranch.containsKey(file))) { 
+                return false;
+            }
+        }
+
+        // file not presnt in split commit 
+        if(!splitBlobs.containsKey(file)) { 
+            // file presnts in head commit not in other commit
+            if(headBlobs.containsKey(file) && !otherBlobs.containsKey(file)) { 
+                return false;
+            }
+
+            // file not in head and presents in other commit checkout to other
+            if(!headBlobs.containsKey(file) && otherBlobs.containsKey(file)) { 
+                checkout("checkout", other.getSHA(), "--", file); 
+                stage.add(file, otherBlobs.get(file));
+                writeObject(STAGING, stage); 
+                return false;
+            }
+        }
+
+        // merge conflict
+        // file in split and not equals other and head, and head and other not equal 
+        // file in head and split and not equals, and not found in other 
+        // file in other and split and not equals, and not found head
+        //  not in split and othe and head not equals
+        if(splitBlobs.containsKey(file) && !splitBlobs.get(file).equals(headBlobs.get(file)) 
+            && !splitBlobs.get(file).equals(otherBlobs.get(file))
+            && headBlobs.containsKey(file) && otherBlobs.containsKey(file)
+            && !headBlobs.get(file).equals(otherBlobs.get(file))  
+            || splitBlobs.containsKey(file) && headBlobs.containsKey(file) 
+            && !splitBlobs.get(file).equals(headBlobs.get(file)) && !otherBlobs.containsKey(file) 
+            || splitBlobs.containsKey(file) && otherBlobs.containsKey(file) 
+            && !splitBlobs.get(file).equals(otherBlobs.get(file)) && !headBlobs.containsKey(file) 
+            || !splitBlobs.containsKey(file) && !otherBlobs.get(file).equals(headBlobs.get(file))) { 
+
+            mergeConflict(headBlobs, otherBlobs, file);
+        }
+        writeObject(STAGING, stage);
+        return false;
+    }
 
     // list of commit parents
     public String whoIsYourParent(Commit c) { 
@@ -596,7 +675,7 @@ public class Repository {
     }
 
 
-    public void updateActiveBranch
+    
 
     public File getRepository() { 
         return GITLETREPO;
