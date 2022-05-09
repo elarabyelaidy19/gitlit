@@ -106,6 +106,22 @@
 
 - **merge**: 
 
+
+- **mergeLogic**: specify what happens to files when we merge.
+    - takes headCommit and mergeCommit and splitCommit and file. 
+    -  if split contains file and this file unchanged in headBranch and changed in other branch check to other branch. 
+    - if file in split changed in headBranch and and not changed in other keep it.
+    - if file presents in boths commits and  equals or not presnts in both keep it, and no conflict. 
+    - if file in head equal file in split and not presnt in other delet it. stage file and update. 
+    - file in split equals file in other and not presnts in head branch not doing anything. 
+    - file not presnt in split commit and file presnts in head commit not in other commit 
+    - file not in head and presents in other commit checkout to other. 
+    -  **encounterd merge conflict**: when we have merge conflict.
+        - file in split and not equals other and head, and head and other not equal 
+        - file in head and split and not equals, and not found in other 
+        - file in other and split and not equals, and not found head
+        - not in split and othe and head not equals
+
 - **SplitCommit**: find split commit of two commits 
     -  find if there is a split commit between two commits. 
 
@@ -113,7 +129,10 @@
     - return list of parents of the commit.
 
 
-
+- **mergeConflict**: handle merge conflict.
+    - takes the haedCommit and beanchCommit and file. 
+    - write both conetent in the file. 
+    - create new blob of the file and stage file. 
 
 ## Algorithms
 
