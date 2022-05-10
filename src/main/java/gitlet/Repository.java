@@ -532,6 +532,67 @@ public class Repository {
         writeContents(HEAD, currBranch);
     }  
 
+
+    public void merge(String branchName) { 
+        if(!join(BRANCHES, branchName).exists()) { 
+            throw new GitletException("A branch with that name does not exist.");
+        }
+        if(branchName.equals(readContentsAsString(HEAD))) { 
+            throw new GitletException("can not merge  branch with itself");
+        }
+        stage = getStage();
+        if(!stage.getAdded().keySet().isEmpty() || stage.getRemoved().isEmpty()) { 
+            throw new GitletException("there is not committed work"); 
+        }
+        boolean conflict = false;
+        commits = getCommits(); 
+        Commit head = getHead(); 
+        Commit mergeHead = commits.get(readContentsAsString(join(BRANCHES, branchName))); 
+        Commit commonAncestor = commits.get(splitCommit(head, mergeHead));
+
+        if(commonAncestor.getSHA().equals(mergeHead.getSHA())) { 
+            throw new GitletException("Given branch is an ancestor of the current branch");
+        }
+
+        if(whoIsYourParent(head).contains(mergeHead.getSHA()) || whoIsYourParent(mergeHead).contains(head.getSHA())) { 
+            checkout("checkout", branchName); 
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+
+        for(String file: plainFilenamesIn(CWD)) { 
+            if(!getHead().getBlobs().containsKey(file) && mergeHead.getBlobs().containsKey(file)) { 
+                throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first");
+            } 
+        }
+
+        Set<String> allFiles = new TreeSet<>(head.getBlobs().keySet()); 
+        allFiles.add(mergeHead.getBlobs().keySet()); 
+        allFiles.add(commonAncestor.getBlobs().keySet());
+        int flag = 0; 
+        for(String file : allFiles) { 
+            boolean conflictOcuured = mergeLogic(commonAncestor, head, mergeHead, file); 
+            if(conflictOcuured) { 
+                flag++;
+            }
+        } 
+
+        if(flag > 0) { 
+            conflict = true;
+        }
+
+        if(stage.getAdded().isEmpty() && stage.getRemoved().isEmpty()) { 
+            throw new GitletException("No changes added to the commit.");
+        } 
+        commit("Merged" + branchName +"into"+ readContentsAsString(HEAD)+".", mergeHead.getSHA()); 
+        if(conflict) { 
+            System.out.println("encounterd a merge conflict")
+        }
+
+    }
+
+
+    // logic for merging algorithm, specifying what happen to files in branches when you merge them  
     public boolean mergeLogic(Commit split, Commit headBranch, Commit otherBranch, String file) { 
         HashMap<String, String> splitBlobs = split.getBlobs(); 
         HashMap<String, String> headBlobs = headBranch.getBlobs(); 

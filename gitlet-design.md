@@ -78,7 +78,7 @@
     - **Print Untracked files**: files not tracked if it is not staged or tracked and present in WD .
 
 
-**Checkout**: all what it does is moving the head pointer to a specific commit or branch. 
+- **Checkout**: all what it does is moving the head pointer to a specific commit or branch. 
 
 - **CheckOut1**: back in time to the previous version of file.
     - overwrite the content of the file with the content of the file commit in the head commit. 
@@ -133,6 +133,8 @@
     - takes the haedCommit and beanchCommit and file. 
     - write both conetent in the file. 
     - create new blob of the file and stage file. 
+
+
 
 ## Algorithms
 
